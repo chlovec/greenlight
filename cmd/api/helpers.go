@@ -39,6 +39,6 @@ func (app *application) writeJSON(
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_, err = w.Write(js)
-	
+
 	return err
 }
