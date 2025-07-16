@@ -1,3 +1,9 @@
 {
-  "cSpell.words": ["golangci", "healthcheck", "httprouter", "julienschmidt"]
+  "cSpell.words": [
+    "golangci",
+    "healthcheck",
+    "httprouter",
+    "julienschmidt",
+    "omitzero"
+  ]
 }
