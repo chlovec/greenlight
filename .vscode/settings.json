@@ -1,9 +1,12 @@
 {
   "cSpell.words": [
+    "EPUB",
     "golangci",
+    "greenlight",
     "healthcheck",
     "httprouter",
     "julienschmidt",
-    "omitzero"
+    "omitzero",
+    "sslmode"
   ]
 }
