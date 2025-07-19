@@ -106,6 +106,7 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	} else if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	// Declare an input struct to hold the expected data from the client.
@@ -175,6 +176,82 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 	// or are a mix of humans and machines
 	env := envelope{"message": "movie successfully deleted"}
 	err = app.writeJSON(w, http.StatusOK, env, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) patchMovieHandler(w http.ResponseWriter, r *http.Request) {
+	// Read and validate id param from request URL.
+	id, err := app.readIDParam(r)
+	if err != nil || id < 1 {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	// Fetch the existing movie from the database and send 404 Not Found
+	// to the client if no matching record was found
+	movie, err := app.models.Movies.Get(id)
+	if err != nil && errors.Is(err, data.ErrRecordNotFound) {
+		app.notFoundResponse(w, r)
+		return
+	} else if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// Declare an input struct to hold the expected data from the client.
+	var input struct {
+		Title   *string       `json:"title"`
+		Year    *int32        `json:"year"`
+		Runtime *data.Runtime `json:"runtime"`
+		Genres  []string      `json:"genres"`
+	}
+
+	// Read the JSON request body data into the input struct.
+	err = app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	// Copy Title if provided
+	if input.Title != nil {
+		movie.Title = *input.Title
+	}
+
+	// Copy Year if provided
+	if input.Year != nil {
+		movie.Year = *input.Year
+	}
+
+	// Copy Runtime if provided
+	if input.Runtime != nil {
+		movie.Runtime = *input.Runtime
+	}
+
+	// Copy Genres if provided
+	if input.Genres != nil {
+		movie.Genres = input.Genres
+	}
+
+	// Validate the updated movie record, sending the client a 422 Unprocessable Entity
+	// response if any checks fail.
+	v := validator.New()
+
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// Update the movie record
+	err = app.models.Movies.Update(movie)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
