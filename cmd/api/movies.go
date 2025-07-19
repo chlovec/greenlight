@@ -150,3 +150,32 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		app.serverErrorResponse(w, r, err)
 	}
 }
+
+func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
+	// Read and validate id param from request URL.
+	id, err := app.readIDParam(r)
+	if err != nil || id < 1 {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	// Delete the movie from the database. Send a 404 Not Found response to the
+	// client there is no matching record.
+	err = app.models.Movies.Delete(id)
+	if err != nil && errors.Is(err, data.ErrRecordNotFound) {
+		app.notFoundResponse(w, r)
+		return
+	} else if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// Send 200 OK with a message if serving only humans
+	// Send just 204 No Content status code if our clients are not humans
+	// or are a mix of humans and machines
+	env := envelope{"message": "movie successfully deleted"}
+	err = app.writeJSON(w, http.StatusOK, env, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
