@@ -141,7 +141,10 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 
 	// Update the movie record
 	err = app.models.Movies.Update(movie)
-	if err != nil {
+	if err != nil && errors.Is(err, data.ErrEditConflict) {
+		app.editConflictResponse(w, r)
+		return
+	} else if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -246,7 +249,10 @@ func (app *application) patchMovieHandler(w http.ResponseWriter, r *http.Request
 
 	// Update the movie record
 	err = app.models.Movies.Update(movie)
-	if err != nil {
+	if err != nil && errors.Is(err, data.ErrRecordNotFound) {
+		app.editConflictResponse(w, r)
+		return
+	} else if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}

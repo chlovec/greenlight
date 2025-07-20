@@ -64,10 +64,13 @@ func (m MovieModel) Insert(movie *Movie) error {
 // Method for updating a specific movie record in the movies table.
 func (m MovieModel) Update(movie *Movie) error {
 	// SQL query for updating a movie record and returning the new version
+	// Use version in the where clause to manage race conditions.
+	// If the version has changed, it will result in sql.ErrNoRows
+	// and we will return edit conflict error
 	query := `
 		UPDATE movies
 		SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1
-		WHERE id = $5
+		WHERE id = $5 AND version = $6
 		RETURNING version
 	`
 	args := []any{
@@ -76,11 +79,17 @@ func (m MovieModel) Update(movie *Movie) error {
 		movie.Runtime,
 		pq.Array(movie.Genres),
 		movie.ID,
+		movie.Version,
 	}
 
 	// Use the QueryRow() method to execute the query, passing in the args slice as a
 	// variadic parameter and scanning the new version value into the movie struct
-	return m.DB.QueryRow(query, args...).Scan(&movie.Version)
+	err := m.DB.QueryRow(query, args...).Scan(&movie.Version)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return ErrEditConflict
+	}
+
+	return err
 }
 
 // Method for deleting a specific movie record.
