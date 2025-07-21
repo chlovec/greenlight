@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
@@ -120,59 +121,69 @@ func (m MovieModel) Delete(id int64) error {
 
 // Method for fetching a specific movie record.
 func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, error) {
-    query := `
+	// Add an ORDER BY clause and interpolate the sort column and direction. Importantly
+	// notice that we also include a secondary sort on the movie ID to ensure a
+	// consistent ordering.
+	query := fmt.Sprintf(`
         SELECT id, created_at, title, year, runtime, genres, version
         FROM movies
         WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '') 
         AND (genres @> $2 OR $2 = '{}')     
-        ORDER BY id`
+        ORDER BY %s %s, id ASC
+		Limit $3 OFFSET $4`, filters.sortColumn(), filters.sortDirection())
 
-    ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-    // Pass the title and genres as the placeholder parameter values.
-    rows, err := m.DB.QueryContext(ctx, query, title, pq.Array(genres))
-    if err != nil {
-        return nil, err
-    }
+	// As our SQL query now has quite a few placeholder parameters, let's collect the
+	// values for the placeholders in a slice. Notice here how we call the limit() and
+	// offset() methods on the Filters struct to get the appropriate values for the
+	// LIMIT and OFFSET clauses.
+	args := []any{title, pq.Array(genres), filters.limit(), filters.offset()}
 
-    // Importantly, defer a call to rows.Close() to ensure that the resultset is closed
-    // before GetAll() returns.
-    defer rows.Close()
+	// And then pass the args slice to QueryContext() as a variadic parameter.
+	rows, err := m.DB.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
 
-    // Initialize an empty slice to hold the movie data.
+	// Importantly, defer a call to rows.Close() to ensure that the resultset is closed
+	// before GetAll() returns.
+	defer rows.Close()
+
+	// Initialize an empty slice to hold the movie data.
 	movies := []*Movie{}
 
-    // Use rows.Next to iterate through the rows in the resultset.
-    for rows.Next() {
-        // Initialize an empty Movie struct to hold the data for an individual movie.
-        var movie Movie
+	// Use rows.Next to iterate through the rows in the resultset.
+	for rows.Next() {
+		// Initialize an empty Movie struct to hold the data for an individual movie.
+		var movie Movie
 
-        // Scan the values from the row into the Movie struct. Again, note that we're 
-        // using the pq.Array() adapter on the genres field here.
-        err := rows.Scan(
-            &movie.ID,
-            &movie.CreatedAt,
-            &movie.Title,
-            &movie.Year,
-            &movie.Runtime,
-            pq.Array(&movie.Genres),
-            &movie.Version,
-        )
-        if err != nil {
-            return nil, err
-        }
+		// Scan the values from the row into the Movie struct. Again, note that we're
+		// using the pq.Array() adapter on the genres field here.
+		err := rows.Scan(
+			&movie.ID,
+			&movie.CreatedAt,
+			&movie.Title,
+			&movie.Year,
+			&movie.Runtime,
+			pq.Array(&movie.Genres),
+			&movie.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
 
-        // Add the Movie struct to the slice.
-        movies = append(movies, &movie)
-    }
+		// Add the Movie struct to the slice.
+		movies = append(movies, &movie)
+	}
 
-	// After the rows.Next() loop has finished, call rows.Err() to retrieve any error 
-    // that was encountered during the iteration.
-    if err = rows.Err(); err != nil {
-        return nil, err
-    }
+	// After the rows.Next() loop has finished, call rows.Err() to retrieve any error
+	// that was encountered during the iteration.
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
 
-    // If everything went OK, then return the slice of movies.
-    return movies, nil
+	// If everything went OK, then return the slice of movies.
+	return movies, nil
 }
