@@ -8,6 +8,11 @@
     "httprouter",
     "julienschmidt",
     "omitzero",
-    "sslmode"
+    "plainto",
+    "resultset",
+    "Safelist",
+    "sslmode",
+    "tsquery",
+    "tsvector"
   ]
 }
