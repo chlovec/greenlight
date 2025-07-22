@@ -4,11 +4,13 @@ lint:
 	golangci-lint run
 
 migrate-create:
-	@if [ -z "$(firstword $(MAKECMDGOALS))" ]; then \
+	@if [ "$(filter-out $@,$(MAKECMDGOALS))" = "" ]; then \
 		echo "Usage: make migrate-create <file_name>"; \
+		exit 1; \
 	else \
-		migrate create -seq -ext=.sql -dir=./migrations file_name=$(firstword $(MAKECMDGOALS)); \
-	fi;
+		FILE_NAME=$(filter-out $@,$(MAKECMDGOALS)); \
+		migrate create -seq -ext=.sql -dir=./migrations $$FILE_NAME; \
+	fi
 
 %:
 	@:
