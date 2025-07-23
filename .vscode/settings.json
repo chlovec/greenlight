@@ -8,13 +8,16 @@
     "httprouter",
     "julienschmidt",
     "omitzero",
+    "pkill",
     "plainto",
     "realip",
     "resultset",
     "Safelist",
     "sslmode",
+    "Tmpl",
     "tomasen",
     "tsquery",
-    "tsvector"
+    "tsvector",
+    "wneessen"
   ]
 }
