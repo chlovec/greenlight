@@ -20,12 +20,14 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.patchMovieHandler)
 
-	// Add the route for the POST /v1/users endpoint.
+	// Users
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
+
+	// Tokens
 	router.HandlerFunc(
 		http.MethodPost,
-		"/v1/users/authentication",
+		"/v1/tokens/authentication",
 		app.createAuthenticationTokenHandler,
 	)
 
