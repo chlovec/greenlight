@@ -13,34 +13,42 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 
-	router.HandlerFunc(http.MethodGet, "/v1/movies", app.listMoviesHandler)
+	// Use the requirePermission() middleware on each of the /v1/movies** endpoints,
+	// passing in the required permission code as the first parameter.
+	router.HandlerFunc(
+		http.MethodGet,
+		"/v1/movies",
+		app.requirePermission("movies:read", app.listMoviesHandler),
+	)
 	router.HandlerFunc(
 		http.MethodPost,
 		"/v1/movies",
-		app.requireActivatedUser(app.createMovieHandler),
-	)
-	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showMovieHandler)
-	router.HandlerFunc(
-		http.MethodPut,
-		"/v1/movies/:id",
-		app.requireActivatedUser(app.updateMovieHandler),
+		app.requirePermission("movies:write", app.createMovieHandler),
 	)
 	router.HandlerFunc(
-		http.MethodDelete,
+		http.MethodGet,
 		"/v1/movies/:id",
-		app.requireActivatedUser(app.deleteMovieHandler),
+		app.requirePermission("movies:read", app.showMovieHandler),
+	)
+	router.HandlerFunc(
+		http.MethodPost,
+		"/v1/movies/:id",
+		app.requirePermission("movies:write", app.updateMovieHandler),
 	)
 	router.HandlerFunc(
 		http.MethodPatch,
 		"/v1/movies/:id",
-		app.requireActivatedUser(app.patchMovieHandler),
+		app.requirePermission("movies:write", app.patchMovieHandler),
+	)
+	router.HandlerFunc(
+		http.MethodDelete,
+		"/v1/movies/:id",
+		app.requirePermission("movies:write", app.deleteMovieHandler),
 	)
 
-	// Users
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
 
-	// Tokens
 	router.HandlerFunc(
 		http.MethodPost,
 		"/v1/tokens/authentication",
