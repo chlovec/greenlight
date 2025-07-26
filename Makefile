@@ -1,5 +1,11 @@
 run:
 	go run ./cmd/api
+run-cors:
+	go run ./cmd/examples/cors/simple
+
+run-cors-preflight:
+	go run ./cmd/examples/cors/preflight
+	
 lint:
 	golangci-lint run
 
