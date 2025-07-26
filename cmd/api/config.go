@@ -88,10 +88,14 @@ func loadConfig() config {
 	// Importantly, if the -cors-trusted-origins flag is not present, contains the empty
 	// string, or contains only whitespace, then strings.Fields() will return an empty
 	// []string slice.
-	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(val string) error {
-		cfg.cors.trustedOrigins = strings.Fields(val)
-		return nil
-	})
+	flag.Func(
+		"cors-trusted-origins",
+		"Trusted CORS origins (space separated)",
+		func(val string) error {
+			cfg.cors.trustedOrigins = strings.Fields(val)
+			return nil
+		},
+	)
 
 	flag.Parse()
 

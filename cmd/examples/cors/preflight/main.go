@@ -50,8 +50,11 @@ func main() {
 
 	log.Printf("starting server on %s", *addr)
 
-	err := http.ListenAndServe(*addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(html))
-	}))
+	err := http.ListenAndServe(
+		*addr,
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(html))
+		}),
+	)
 	log.Fatal(err)
 }
