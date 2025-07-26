@@ -60,6 +60,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	// collect stats using express var
+	publishMetrics(db)
+
 	app := &application{
 		config: cfg,
 		logger: logger,
