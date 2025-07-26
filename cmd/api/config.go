@@ -44,7 +44,12 @@ type config struct {
 func loadConfig() config {
 	var cfg config
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
-	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	flag.StringVar(
+		&cfg.env,
+		"env",
+		os.Getenv("ENV"),
+		"Environment (development|staging|production)",
+	)
 	// Read the DSN value from the db-dsn command-line flag into the config struct. We
 	// default to using our development DSN if no flag is provided.
 	// Use the value of the GREENLIGHT_DB_DSN environment variable as the default value
@@ -71,14 +76,14 @@ func loadConfig() config {
 	// Mailtrap settings as the default values. IMPORTANT: If you're following along,
 	// make sure to replace the default values for smtp-username and smtp-password
 	// with your own Mailtrap credentials.
-	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
+	flag.StringVar(&cfg.smtp.host, "smtp-host", os.Getenv("SMTP_HOST"), "SMTP host")
 	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
 	flag.StringVar(&cfg.smtp.username, "smtp-username", os.Getenv("SMTP_USERNAME"), "SMTP username")
 	flag.StringVar(&cfg.smtp.password, "smtp-password", os.Getenv("SMTP_PASSWORD"), "SMTP password")
 	flag.StringVar(
 		&cfg.smtp.sender,
 		"smtp-sender",
-		"Greenlight <no-reply@greenlight.alexedwards.net>",
+		os.Getenv("SMTP_SENDER"),
 		"SMTP sender",
 	)
 

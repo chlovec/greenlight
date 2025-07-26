@@ -1,3 +1,11 @@
+# Load variables from .env file
+include .env
+export $(shell sed 's/=.*//' .env)
+
+test:
+	@echo "Environment: ${ENV}"
+	@echo "SMTP Sender: ${SMTP_SENDER}"
+
 ## help: print this help message
 .PHONY: help
 help:
