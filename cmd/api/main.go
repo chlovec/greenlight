@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 	"os"
 	"sync"
@@ -25,7 +26,13 @@ type application struct {
 }
 
 func main() {
-	cfg := loadConfig()
+	cfg, displayVersion := loadConfig()
+	// If the version flag value is true, then print out the version number and
+	// immediately exit.
+	if displayVersion {
+		fmt.Printf("Version:\t%s\n", version)
+		os.Exit(0)
+	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 

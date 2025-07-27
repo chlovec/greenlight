@@ -40,6 +40,10 @@ audit:
 	@echo 'Running tests...'
 	go test -race -vet=off ./...
 
+.PHONY: build
+build:
+	@echo "Building cmd/api..."
+	go build -ldflags='-s' -o=./bin/api ./cmd/api
 
 ## run/api: run the cmd/api application
 .PHONY: run/api
