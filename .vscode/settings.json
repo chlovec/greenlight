@@ -15,6 +15,7 @@
     "resultset",
     "Safelist",
     "sslmode",
+    "staticcheck",
     "Tmpl",
     "tomasen",
     "tsquery",
