@@ -8,8 +8,7 @@ import (
 )
 
 func publishMetrics(db *sql.DB) {
-	// Publish a new "version" variable in the expvar handler containing our application
-	// version number (currently the constant "1.0.0").
+	// Publish the "version" variable in the expvar handler containing our application
 	expvar.NewString("version").Set(version)
 
 	// Publish the number of active goroutines.

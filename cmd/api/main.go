@@ -11,11 +11,12 @@ import (
 
 	"github.com/chlovec/greenlight/internal/data"
 	"github.com/chlovec/greenlight/internal/mailer"
+	"github.com/chlovec/greenlight/internal/vcs"
 	_ "github.com/lib/pq"
 )
 
-// Declare a string containing the application version number”
-const version = "1.0.0"
+// Read version from version control system.
+var version = vcs.Version()
 
 type application struct {
 	config config
